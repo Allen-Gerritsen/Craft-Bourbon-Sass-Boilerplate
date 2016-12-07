@@ -1,0 +1,13 @@
+#!/bin/bash
+
+export DEBIAN_FRONTEND=noninteractive
+
+pushd /var/www/lasalle_microsite
+	sudo git reset --hard
+	sudo git pull origin master
+	sudo rsync -rtvpl digitalocean/ /
+	sudo npm install
+	chown -R www-data:www-data /var/www/lasalle_microsite
+popd
+
+sudo service nginx reload

@@ -1,0 +1,10 @@
+{% extends "_layout" %}
+{% block content %}
+<h1>INDEX</h1>
+{% endblock %}
+	
+{% set myJs %}
+    {% include '_includes/scripts/home.js' %}
+{% endset %}
+
+{% includeJs myJs %}

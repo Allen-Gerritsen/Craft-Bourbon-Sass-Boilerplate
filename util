@@ -1,0 +1,42 @@
+#!/bin/bash
+
+digitalocean_ip='159.203.94.65'
+
+chmod -R 600 keys/*
+
+case ${@:1:1} in
+    init)
+
+	;;
+	deploy)
+        digitalocean_deploy=$(<digitalocean/etc/digitalocean_deploy)
+        ssh -t -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no -i "keys/project.pem" -A -p 22 root@$digitalocean_ip "$digitalocean_deploy"
+    ;;
+    sync)
+		kill -9 $(lsof -t -i:3307) 2> /dev/null
+		echo "45QT8qJbp5"|pbcopy
+		ssh -f -L 3307:127.0.0.1:3306 -t -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no -i keys/id_rsa -A -p 22 root@$digitalocean_ip -N
+   		mysql -e "drop database lasalle_microsite;" -P 3306 -h localhost -uroot --password=root
+    	mysql -e "create database lasalle_microsite CHARACTER SET utf8 COLLATE utf8_general_ci;" -P 3306 -h localhost -uroot --password=root
+		mysqldump -h 127.0.0.1 -P 3307 -uroot -p45QT8qJbp5 lasalle_microsite > /tmp/lasalle_microsite.sql
+		mysql -h localhost -uroot --password=root --force lasalle_microsite < /tmp/lasalle_microsite.sql
+		rm /tmp/lasalle_microsite.sql
+		kill -9 $(lsof -t -i:3307) 2> /dev/null
+    ;;
+	export-db)
+		j=$(printf "%s" 'Host ' $HOSTNAME)
+		NOW=$(date +"%m-%d-%Y-%r")
+		a=$(printf "%s" 'Time ' $NOW)
+		TS=$(date +"%s")
+		v=$(printf "%s" 'DB ' $TS'.sql')
+        printf '%s %s\n%s %s\n%s %s\n\n' $j $a $v>> _db/log.txt
+        mysqldump -h localhost -uroot --password=root --force mobile_stu > _db/latest_local.sql
+        mysqldump -h localhost -uroot --password=root --force mobile_stu > _db/${TS}.sql
+    ;;
+    deploy-local-db)
+        echo 'Run this by hand: mysql -h localhost -uroot --password=dccbb75b540ef6215b4468537733155fb914c9a46c045e72 --force mobile_stu < /var/www/MobileStu-Full/_db/latest_local.sql'
+    ;;
+	*)
+		echo 'It works!'
+	;;
+esac

@@ -1,0 +1,22 @@
+{
+  "name": "Craft-Bourbon-Sass-Boilerplate",
+  "description": "",
+  "main": "Gruntfile.js",
+  "authors": [
+    "Greg Thompson"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/Allen-Gerritsen/Craft-Bourbon-Sass-Boilerplate",
+  "moduleType": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "=1.12.4",
+    "isMobile": "^0.4.0"
+  }
+}

@@ -1,0 +1,34 @@
+@import "bourbon";
+
+$max-width: 1200px;
+
+@import "neat";
+@import "neat-helpers";
+@import "base/base";
+
+
+@import "_parts/_mixins";
+@import "_parts/_fonts";
+
+//Globals
+
+
+$large: new-breakpoint(max-width 1200px);
+$medium: new-breakpoint(max-width 1000px);
+$small: new-breakpoint(max-width 900px);
+$tablet: new-breakpoint(max-width 768px);
+$phone: new-breakpoint(max-width 440px);
+
+body{
+  background-color: #ddd;
+}
+
+//RESET
+html, body {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
