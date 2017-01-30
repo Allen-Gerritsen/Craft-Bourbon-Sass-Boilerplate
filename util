@@ -20,7 +20,7 @@ case ${@:1:1} in
   sync)
 		kill -9 $(lsof -t -i:3307) 2> /dev/null
 		echo "45QT8qJbp5"|pbcopy
-		ssh -f -L 3307:127.0.0.1:3306 -t -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no -i keys/id_rsa -A -p 22 root@$remote_server_ip -N
+		ssh -f -L 3307:127.0.0.1:3306 -t -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no -i keys/id_rsa -A -p 22 $remote_server_user@$remote_server_ip -N
    		mysql -e "drop database $db_name;" -P 3306 -h localhost -uroot --password=root
     	mysql -e "create database $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;" -P 3306 -h localhost -uroot --password=root
 		mysqldump -h 127.0.0.1 -P 3307 -uroot -p45QT8qJbp5 $db_name > /tmp/$db_name.sql
