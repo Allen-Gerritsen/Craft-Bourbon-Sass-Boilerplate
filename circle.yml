@@ -3,10 +3,13 @@ test:
     - echo "no tests"
 
 dependencies:
+  pre:
+    - sudo apt-get update; sudo apt-get install ruby-sass
+    
   override:
     - npm install
     - bower install
-    
+
 compile:
   override:
     - npm run buildjs
