@@ -15,7 +15,7 @@ case ${@:1:1} in
 	;;
 	deploy)
   ssh $remote_server_user@$remote_server_ip "test -d $project_folder || mkdir $project_folder"
-  rsync -avz -e "ssh -i ./keys/project.pem" ./ $remote_server_user@$remote_server_ip:$project_folder
+  rsync -avz -e "ssh -i ./keys/project.pem" ./cms/ $remote_server_user@$remote_server_ip:$project_folder
   ;;
   sync)
 		kill -9 $(lsof -t -i:3307) 2> /dev/null
