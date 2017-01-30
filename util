@@ -1,28 +1,33 @@
 #!/bin/bash
 
-digitalocean_ip='159.203.94.65'
+remote_server_user="ag"
+remote_server_ip='159.203.127.169'
+db_name="YOUR_db_name"
+db_pwd="YOUR_db_pwd"
+db_location="/var/www/MobileStu-Full/_db"
+project_folder="/var/www/Craft-Bourbon-Sass-Boilerplate"
 
 chmod -R 600 keys/*
 
 case ${@:1:1} in
-    init)
+  init)
 
 	;;
 	deploy)
-        digitalocean_deploy=$(<digitalocean/etc/digitalocean_deploy)
-        ssh -t -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no -i "keys/project.pem" -A -p 22 root@$digitalocean_ip "$digitalocean_deploy"
-    ;;
-    sync)
+  ssh $remote_server_user@$remote_server_ip "test -d $project_folder || mkdir $project_folder"
+  rsync -avz -e "ssh -i ./keys/project.pem" ./ $remote_server_user@$remote_server_ip:$project_folder
+  ;;
+  sync)
 		kill -9 $(lsof -t -i:3307) 2> /dev/null
 		echo "45QT8qJbp5"|pbcopy
-		ssh -f -L 3307:127.0.0.1:3306 -t -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no -i keys/id_rsa -A -p 22 root@$digitalocean_ip -N
-   		mysql -e "drop database lasalle_microsite;" -P 3306 -h localhost -uroot --password=root
-    	mysql -e "create database lasalle_microsite CHARACTER SET utf8 COLLATE utf8_general_ci;" -P 3306 -h localhost -uroot --password=root
-		mysqldump -h 127.0.0.1 -P 3307 -uroot -p45QT8qJbp5 lasalle_microsite > /tmp/lasalle_microsite.sql
-		mysql -h localhost -uroot --password=root --force lasalle_microsite < /tmp/lasalle_microsite.sql
-		rm /tmp/lasalle_microsite.sql
+		ssh -f -L 3307:127.0.0.1:3306 -t -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no -i keys/id_rsa -A -p 22 root@$remote_server_ip -N
+   		mysql -e "drop database $db_name;" -P 3306 -h localhost -uroot --password=root
+    	mysql -e "create database $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;" -P 3306 -h localhost -uroot --password=root
+		mysqldump -h 127.0.0.1 -P 3307 -uroot -p45QT8qJbp5 $db_name > /tmp/$db_name.sql
+		mysql -h localhost -uroot --password=root --force $db_name < /tmp/$db_name.sql
+		rm /tmp/$db_name.sql
 		kill -9 $(lsof -t -i:3307) 2> /dev/null
-    ;;
+  ;;
 	export-db)
 		j=$(printf "%s" 'Host ' $HOSTNAME)
 		NOW=$(date +"%m-%d-%Y-%r")
@@ -30,13 +35,13 @@ case ${@:1:1} in
 		TS=$(date +"%s")
 		v=$(printf "%s" 'DB ' $TS'.sql')
         printf '%s %s\n%s %s\n%s %s\n\n' $j $a $v>> _db/log.txt
-        mysqldump -h localhost -uroot --password=root --force mobile_stu > _db/latest_local.sql
-        mysqldump -h localhost -uroot --password=root --force mobile_stu > _db/${TS}.sql
+        mysqldump -h localhost -uroot --password=root --force $db_name > _db/latest_local.sql
+        mysqldump -h localhost -uroot --password=root --force $db_name > _db/${TS}.sql
     ;;
-    deploy-local-db)
-        echo 'Run this by hand: mysql -h localhost -uroot --password=dccbb75b540ef6215b4468537733155fb914c9a46c045e72 --force mobile_stu < /var/www/MobileStu-Full/_db/latest_local.sql'
-    ;;
+  deploy-local-db)
+    echo "Run this by hand: mysql -h localhost -uroot --password=$db_pwd --force $db_name < $db_location/latest_local.sql"
+  ;;
 	*)
-		echo 'It works!'
+		echo "It works!""
 	;;
 esac

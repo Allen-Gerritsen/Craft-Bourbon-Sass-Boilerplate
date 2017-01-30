@@ -1,6 +1,15 @@
 test:
   override:
     - echo "no tests"
+
+dependencies:
+  override:
+    - npm install
+
+compile:
+  override:
+    - npm run buildjs
+
 deployment:
   staging:
     branch: master
