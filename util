@@ -42,6 +42,6 @@ case ${@:1:1} in
     echo "Run this by hand: mysql -h localhost -uroot --password=$db_pwd --force $db_name < $db_location/latest_local.sql"
   ;;
 	*)
-		echo "It works!""
+		echo "It works!"
 	;;
 esac
