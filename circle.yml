@@ -5,7 +5,8 @@ test:
 dependencies:
   override:
     - npm install
-
+    - bower install
+    
 compile:
   override:
     - npm run buildjs
