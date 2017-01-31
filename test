@@ -1,3 +1,0 @@
-db_name="your_boring_db_name"
-echo "drop database $db_name;"
-echo $db_name.sql;
