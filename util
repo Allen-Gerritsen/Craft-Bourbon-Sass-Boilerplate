@@ -1,13 +1,14 @@
 #!/bin/bash
 
+folder_name="Folder Name"
 remote_server_user="ag"
 remote_server_ip='159.203.127.169'
 db_name="YOUR_db_name"
 db_port="3307"
 db_user="Your_db_user"
 db_pwd="YOUR_db_pwd"
-db_location="/var/www/MobileStu-Full/_db"
-project_folder="/var/www/Craft-Bourbon-Sass-Boilerplate"
+db_location="/var/www/$folder_name/_db"
+project_folder="/var/www/$folder_name"
 
 chmod -R 600 keys/*
 
