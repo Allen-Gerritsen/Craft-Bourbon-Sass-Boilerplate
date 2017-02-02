@@ -17,6 +17,6 @@ compile:
 
 deployment:
   staging:
-    branch: master
+    branch: production
     commands:
       - ./util deploy
