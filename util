@@ -4,33 +4,54 @@ remote_server_user="ag"
 remote_server_ip='159.203.127.169'
 local_db_user="root"
 local_db_pwd="root"
-db_name="YOUR_db_name"
+db_name="sunoco_engine"
 db_port="3307"
-db_user="Your_db_user"
-db_pwd="YOUR_db_pwd"
-db_location="/var/www/$folder_name/_db"
-project_folder="/var/www/$folder_name"
+db_user="root"
+db_pwd="dMgoCrVMMP"
+branch=$(git branch | sed -n -e 's/^\* \(.*\)/\1/p')
+db_location="/var/www/$folder_name--$branch/_db"
+project_folder="/var/www/$folder_name--$branch"
 
 chmod -R 600 keys/*
 
 case ${@:1:1} in
-  init)
-
+    init)
+        #CREATE SCRIPT TO CREAT THE DB BASED ON BRANCH!!!!!!!!!!!
 	;;
     deploy)
         ssh $remote_server_user@$remote_server_ip "test -d $project_folder || mkdir $project_folder"
-        rsync -avz -e "ssh -i ./keys/project.pem" ./cms/ $remote_server_user@$remote_server_ip:$project_folder
+        rsync -avz ./cms/ $remote_server_user@$remote_server_ip:$project_folder
+        #MUST ADD NO PASSWORD FOR 'visudo' group
+        #%sudo  ALL=(ALL) NOPASSWD: ALL
+        ssh $remote_server_user@$remote_server_ip "sudo chmod 777 -R $project_folder/craft/storage"
+        ssh $remote_server_user@$remote_server_ip "sudo chmod 777 -R $project_folder/public/uploads"
+    ;;
+    rsync-down)
+        rsync -avz $remote_server_user@$remote_server_ip:$project_folder/public/uploads/ cms/public/uploads/
+        rsync -avz $remote_server_user@$remote_server_ip:$project_folder/craft/storage/userphotos/ cms/craft/storage/userphotos/
+    ;;
+    rsync-up)
+        rsync -avz cms/public/uploads/ $remote_server_user@$remote_server_ip:$project_folder/public/uploads/
+        rsync -avz cms/craft/storage/userphotos/ $remote_server_user@$remote_server_ip:$project_folder/craft/storage/userphotos/
     ;;
     sync)
+        j=$(printf "%s" 'Host ' $HOSTNAME)
+        NOW=$(date +"%m-%d-%Y-%r")
+        a=$(printf "%s" 'Time ' $NOW)
+        TS=$(date +"%s")
+        v=$(printf "%s" 'DB ' $TS'.sql')
+        printf '%s %s\n%s %s\n%s %s\n\n' $j $a $v>> cms/_db/log.txt
+        mysqldump -h localhost -u$local_db_user --password=$local_db_pwd --force $db_name > cms/_db/${TS}.sql
         kill -9 $(lsof -t -i:3307) 2> /dev/null
         echo $db_pwd|pbcopy
-        ssh -f -L 3307:127.0.0.1:3306 -t -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no -i keys/id_rsa -A -p 22 $remote_server_user@$remote_server_ip -N
+        ssh -f -L 3307:127.0.0.1:3306 -t -o UserKnownHostsFile=/dev/null -o CheckHostIP=no -o StrictHostKeyChecking=no $remote_server_user@$remote_server_ip -N
         mysql -e "drop database $db_name;" -P 3306 -h localhost -u$local_db_user --password=$local_db_pwd
         mysql -e "create database $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;" -P 3306 -h localhost -u$local_db_user --password=$local_db_pwd
         mysqldump -h 127.0.0.1 -P $db_port -u$db_user -p$db_pwd $db_name > /tmp/$db_name.sql
-        mysql -h localhost -u$db_user --password=$db_pwd --force $db_name < /tmp/$db_name.sql
+        mysql -h localhost -u$local_db_user --password=$local_db_pwd --force $db_name < /tmp/$db_name.sql
         rm /tmp/$db_name.sql
         kill -9 $(lsof -t -i:3307) 2> /dev/null
+        util export-db
     ;;
     export-db)
         j=$(printf "%s" 'Host ' $HOSTNAME)
@@ -38,14 +59,18 @@ case ${@:1:1} in
         a=$(printf "%s" 'Time ' $NOW)
         TS=$(date +"%s")
         v=$(printf "%s" 'DB ' $TS'.sql')
-        printf '%s %s\n%s %s\n%s %s\n\n' $j $a $v>> _db/log.txt
-        mysqldump -h localhost -u$local_db_user --password=$local_db_pwd --force $db_name > _db/latest_local.sql
-        mysqldump -h localhost -u$local_db_user --password=$local_db_pwd --force $db_name > _db/${TS}.sql
+        printf '%s %s\n%s %s\n%s %s\n\n' $j $a $v>> cms/_db/log.txt
+        mysqldump -h localhost -u$local_db_user --password=$local_db_pwd --force $db_name > cms/_db/latest_local.sql
+        mysqldump -h localhost -u$local_db_user --password=$local_db_pwd --force $db_name > cms/_db/${TS}.sql
     ;;
-  deploy-local-db)
-        echo "Run this by hand: mysql -h localhost -u$db_user --password=$db_pwd --force $db_name < $db_location/latest_local.sql"
+    deploy-local-db)
+        task="mysql -h localhost -u$db_user --password=$db_pwd --force $db_name < $db_location/latest_local.sql"
+        ssh $remote_server_user@$remote_server_ip $task
+
+        echo "Run this by hand: $task"
+        echo $task | pbcopy
   ;;
 	*)
-		echo "It works!"
+		echo "It works! $project_folder"
 	;;
 esac
